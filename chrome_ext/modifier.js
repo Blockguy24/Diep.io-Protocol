@@ -13,12 +13,6 @@ injectScript("("+(function() {
 	var _toString = window.Function.prototype.toString;
 
 
-	Function.prototype.toString = function(){
-	    if(this === Function.prototype.toString) return _toString.call(_toString);
-	    if(this === window.WebSocket.prototype.send) return _toString.call(proxiedSend);
-	    return _toString.call(this);
-	};
-
 
 	// Upgrades
 	var upgradeParams = [
@@ -85,6 +79,25 @@ injectScript("("+(function() {
 		74:"Mega Smasher",
 		76:"Landmine"
 	};
+	
+	// Entities
+	var entities = {
+		// Basic Polygons
+		triangle:[84, 114, 105, 97, 110, 103, 108, 101],
+		square:[83, 113, 117, 97, 114, 101],
+		pentagon:[80, 101, 110, 116, 97, 103, 111, 110],
+		
+		// Advanced Polygons
+		crasher:[67, 114, 97, 115, 104, 101, 114],
+		alpha_pentagon:[65, 108, 112, 104, 97, 32, 80, 101, 110, 116, 97, 103, 111, 110],
+		
+		// Boss Enemies
+		guardian:[71, 117, 97, 114, 100, 105, 97, 110],
+		summoner:[83, 117, 109, 109, 111, 110, 101, 114],
+		defender:[68, 101, 102, 101, 110, 100, 101, 114],
+		fallen_booster:[70, 97, 108, 108, 101, 110, 32, 66, 111, 111, 115, 116, 101, 114],
+		fallen_overlord:[70, 97, 108, 108, 101, 110, 32, 79, 118, 101, 114, 108, 111, 114, 100]
+	};
 
 	// Server uptime, in ticks
 	var uptime = 0;
@@ -94,6 +107,8 @@ injectScript("("+(function() {
 
 	// Cursor Y coordinate
 	var yc = 0;
+	
+	var f = -1;
 
 	function decodeUTF8(bytes) {
 		// From: https://gist.github.com/pascaldekloe/62546103a1576803dade9269ccf76330
@@ -266,8 +281,79 @@ injectScript("("+(function() {
 			inst.events.push([1, event.data, event.data.length]);
 		}
 		*/
-
-		// Get server uptime, in ticks (A tick is 40 milliseconds)
+		
+		// Detects kills
+		var ar = new Uint8Array(event.data);
+		var ka = scan(ar, entities.triangle);
+		var kb = scan(ar, entities.square);
+		var kc = scan(ar, entities.pentagon);
+		var kd = scan(ar, entities.crasher);
+		var ke = scan(ar, entities.alpha_pentagon);
+		var kf = scan(ar, entities.guardian);
+		var kg = scan(ar, entities.summoner);
+		var kh = scan(ar, entities.defender);
+		var ki = scan(ar, entities.fallen_booster);
+		var kj = scan(ar, entities.fallen_overlord);
+		if(ka && ar[ka-1] < 11){
+			if(f == -1)
+				f = ar[ka-1];
+			if(f != ar[ka-1])
+				console.log("Killed by a red triangle with packet: " + parse(ar, ka-1));
+		}
+		if(kb && ar[kb-1] < 11){
+			if(f == -1)
+				f = ar[kb-1];
+			if(f != ar[kb-1])
+				console.log("Killed by a yellow square with packet: " + parse(ar, kb-1));
+		}
+		if(kc && ar[kc-1] < 11){
+			if(f == -1)
+				f = ar[kc-1];
+			if(f != ar[kc-1])
+				console.log("Killed by a blue pentagon with packet: " + parse(ar, kc-1));
+		}
+		if(kd && ar[kd-1] < 11){
+			if(f == -1)
+				f = ar[kd-1];
+			if(f != ar[kd-1])
+				console.log("Killed by a pink crasher triangle with packet: " + parse(ar, kd-1));
+		}
+		if(ke && ar[ke-1] < 11){
+			if(f == -1)
+				f = ar[ke-1];
+			if(f != ar[ke-1])
+				console.log("Killed by an Alpha Pentagon with packet: " + parse(ar, ke-1));
+		}
+		if(kf && ar[kf-1] < 11){
+			if(f == -1)
+				f = ar[kf-1];
+			if(f != ar[kf-1])
+				console.log("Killed by the Guardian of the Pentagons boss with packet: " + parse(ar, kf-1));
+		}
+		if(kg && ar[kg-1] < 11){
+			if(f == -1)
+				f = ar[kg-1];
+			if(f != ar[kg-1])
+				console.log("Killed by the Summoner boss with packet: " + parse(ar, kg-1));
+		}
+		if(kh && ar[kh-1] < 11){
+			if(f == -1)
+				f = ar[kh-1];
+			if(f != ar[kh-1])
+				console.log("Killed by the Defender boss with packet: " + parse(ar, kh-1));
+		}
+		if(ki && ar[ki-1] < 11){
+			if(f == -1)
+				f = ar[ki-1];
+			if(f != ar[ki-1])
+				console.log("Killed by the Fallen Booster boss with packet: " + parse(ar, ki-1));
+		}
+		if(kj && ar[kj-1] < 11){
+			if(f == -1)
+				f = ar[kj-1];
+			if(f != ar[kj-1])
+				console.log("Killed by the Fallen Overlord boss with packet: " + parse(ar, kj-1));
+		}
 		if(dv.getUint8(0) == 0){
 			/*
 			for(var d = [], i = 0; i <= 8; i++){
@@ -275,6 +361,9 @@ injectScript("("+(function() {
 			}
 			console.log(d)
 			*/
+			
+			
+			// Get server uptime, in ticks (A tick is 40 milliseconds)
 			if((dv.getUint8(3) == 0 && dv.getUint8(5) == 1 && dv.getUint8(8) == 0)||
 			(dv.getUint8(3) == 1 && (dv.getUint8(4) == 0 || dv.getUint8(4) == 1 || dv.getUint8(4) == 2))){
 				// For Domination and Mothership
@@ -445,6 +534,30 @@ injectScript("("+(function() {
 		}
 		return event;
 	}
+	
+	// Checks if an array is present inside a larger array
+	function scan(array, query) {
+		var z = array.indexOf(query[0]);
+		if (z == -1)
+			return 0
+		for (var i = 1; i < query.length; i++){
+			if (array[z + i] != query[i])
+				return 0
+		}
+		return z
+	}
+	
+	// Gets subarray at index but stops when it reaches null
+	function parse(array, index) {
+		var z = [];
+		for (var i = index; i < array.length; i++){
+			if (array[i] == 0)
+				break
+			z[z.length] = array[i]
+		}
+		return z;
+	}
+	
 
 	// Snoop on outgoing websocket traffic.
 
